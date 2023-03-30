@@ -206,16 +206,17 @@ public class XPathParser {
   }
 
   public XNode evalNode(Object root, String expression) {
-    // 使用 javax 提供的 XPath
     Node node = (Node) evaluate(expression, root, XPathConstants.NODE);
     if (node == null) {
       return null;
     }
+    // mybatis 自定义的 XNode
     return new XNode(this, node, variables);
   }
 
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
+      // 使用 javax 提供的 XPath
       return xpath.evaluate(expression, root, returnType);
     } catch (Exception e) {
       throw new BuilderException("Error evaluating XPath.  Cause: " + e, e);

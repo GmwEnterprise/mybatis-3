@@ -15,12 +15,6 @@
  */
 package org.apache.ibatis.builder.xml;
 
-import java.io.InputStream;
-import java.io.Reader;
-import java.util.Properties;
-
-import javax.sql.DataSource;
-
 import org.apache.ibatis.builder.BaseBuilder;
 import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.datasource.DataSourceFactory;
@@ -39,13 +33,14 @@ import org.apache.ibatis.reflection.MetaClass;
 import org.apache.ibatis.reflection.ReflectorFactory;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
-import org.apache.ibatis.session.AutoMappingBehavior;
-import org.apache.ibatis.session.AutoMappingUnknownColumnBehavior;
-import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.session.ExecutorType;
-import org.apache.ibatis.session.LocalCacheScope;
+import org.apache.ibatis.session.*;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.type.JdbcType;
+
+import javax.sql.DataSource;
+import java.io.InputStream;
+import java.io.Reader;
+import java.util.Properties;
 
 /**
  * @author Clinton Begin
@@ -71,7 +66,7 @@ public class XMLConfigBuilder extends BaseBuilder {
   }
 
   public XMLConfigBuilder(Class<? extends Configuration> configClass, Reader reader, String environment,
-      Properties props) {
+                          Properties props) {
     this(configClass, new XPathParser(reader, true, props, new XMLMapperEntityResolver()), environment, props);
   }
 
@@ -83,31 +78,48 @@ public class XMLConfigBuilder extends BaseBuilder {
     this(inputStream, environment, null);
   }
 
+  /**
+   * 生成用于解析配置文件的实例，该方法是 SqlSessionFactoryBuilder 的调用入口
+   */
   public XMLConfigBuilder(InputStream inputStream, String environment, Properties props) {
     this(Configuration.class, inputStream, environment, props);
   }
 
+  /**
+   * 看起来 mybatis 支持扩展 Configuration 对象
+   */
   public XMLConfigBuilder(Class<? extends Configuration> configClass, InputStream inputStream, String environment,
-      Properties props) {
-    this(configClass, new XPathParser(inputStream, true, props, new XMLMapperEntityResolver()), environment, props);
+                          Properties props) {
+    this(configClass,
+      // 构造一个 XPathParser 实例，后面用来解析配置文件
+      new XPathParser(inputStream, true, props, new XMLMapperEntityResolver()),
+      environment, props
+    );
   }
 
-  private XMLConfigBuilder(Class<? extends Configuration> configClass, XPathParser parser, String environment,
-      Properties props) {
+  private XMLConfigBuilder(Class<? extends Configuration> configClass,
+                           XPathParser parser,
+                           String environment, Properties props) {
+    // 获取 configClass 的无参构造方法然后创建实例，提交给父类构造函数
+    // configuration 成员定义在父类中的
     super(newConfig(configClass));
     ErrorContext.instance().resource("SQL Mapper Configuration");
-    this.configuration.setVariables(props);
-    this.parsed = false;
+    this.configuration.setVariables(props); // 编程式直接设置了属性
+    this.parsed = false; // 还未解析配置文件
     this.environment = environment;
     this.parser = parser;
   }
 
+  /**
+   * 执行配置文件的解析
+   */
   public Configuration parse() {
     if (parsed) {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
-    parseConfiguration(parser.evalNode("/configuration"));
+    XNode configRoot = parser.evalNode("/configuration"); // 解析出 root 节点
+    parseConfiguration(configRoot); // 挨个去配置
     return configuration;
   }
 
@@ -144,7 +156,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
         throw new BuilderException(
-            "The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");
+          "The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");
       }
     }
     return props;
@@ -199,7 +211,7 @@ public class XMLConfigBuilder extends BaseBuilder {
         String interceptor = child.getStringAttribute("interceptor");
         Properties properties = child.getChildrenAsProperties();
         Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).getDeclaredConstructor()
-            .newInstance();
+          .newInstance();
         interceptorInstance.setProperties(properties);
         configuration.addInterceptor(interceptorInstance);
       }
@@ -239,7 +251,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       String url = context.getStringAttribute("url");
       if (resource != null && url != null) {
         throw new BuilderException(
-            "The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
+          "The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
       }
       if (resource != null) {
         defaults.putAll(Resources.getResourceAsProperties(resource));
@@ -257,9 +269,9 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void settingsElement(Properties props) {
     configuration
-        .setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
+      .setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
     configuration.setAutoMappingUnknownColumnBehavior(
-        AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
+      AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
     configuration.setCacheEnabled(booleanValueOf(props.getProperty("cacheEnabled"), true));
     configuration.setProxyFactory((ProxyFactory) createInstance(props.getProperty("proxyFactory")));
     configuration.setLazyLoadingEnabled(booleanValueOf(props.getProperty("lazyLoadingEnabled"), false));
@@ -276,7 +288,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     configuration.setLocalCacheScope(LocalCacheScope.valueOf(props.getProperty("localCacheScope", "SESSION")));
     configuration.setJdbcTypeForNull(JdbcType.valueOf(props.getProperty("jdbcTypeForNull", "OTHER")));
     configuration.setLazyLoadTriggerMethods(
-        stringSetValueOf(props.getProperty("lazyLoadTriggerMethods"), "equals,clone,hashCode,toString"));
+      stringSetValueOf(props.getProperty("lazyLoadTriggerMethods"), "equals,clone,hashCode,toString"));
     configuration.setSafeResultHandlerEnabled(booleanValueOf(props.getProperty("safeResultHandlerEnabled"), true));
     configuration.setDefaultScriptingLanguage(resolveClass(props.getProperty("defaultScriptingLanguage")));
     configuration.setDefaultEnumTypeHandler(resolveClass(props.getProperty("defaultEnumTypeHandler")));
@@ -287,7 +299,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     configuration.setConfigurationFactory(resolveClass(props.getProperty("configurationFactory")));
     configuration.setShrinkWhitespacesInSql(booleanValueOf(props.getProperty("shrinkWhitespacesInSql"), false));
     configuration.setArgNameBasedConstructorAutoMapping(
-        booleanValueOf(props.getProperty("argNameBasedConstructorAutoMapping"), false));
+      booleanValueOf(props.getProperty("argNameBasedConstructorAutoMapping"), false));
     configuration.setDefaultSqlProviderType(resolveClass(props.getProperty("defaultSqlProviderType")));
     configuration.setNullableOnForEach(booleanValueOf(props.getProperty("nullableOnForEach"), false));
   }
@@ -304,7 +316,7 @@ public class XMLConfigBuilder extends BaseBuilder {
           DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
           DataSource dataSource = dsFactory.getDataSource();
           Environment.Builder environmentBuilder = new Environment.Builder(id).transactionFactory(txFactory)
-              .dataSource(dataSource);
+            .dataSource(dataSource);
           configuration.setEnvironment(environmentBuilder.build());
           break;
         }
@@ -394,14 +406,14 @@ public class XMLConfigBuilder extends BaseBuilder {
             ErrorContext.instance().resource(resource);
             try (InputStream inputStream = Resources.getResourceAsStream(resource)) {
               XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource,
-                  configuration.getSqlFragments());
+                configuration.getSqlFragments());
               mapperParser.parse();
             }
           } else if (resource == null && url != null && mapperClass == null) {
             ErrorContext.instance().resource(url);
             try (InputStream inputStream = Resources.getUrlAsStream(url)) {
               XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url,
-                  configuration.getSqlFragments());
+                configuration.getSqlFragments());
               mapperParser.parse();
             }
           } else if (resource == null && url == null && mapperClass != null) {
@@ -409,7 +421,7 @@ public class XMLConfigBuilder extends BaseBuilder {
             configuration.addMapper(mapperInterface);
           } else {
             throw new BuilderException(
-                "A mapper element may only specify a url, resource or class, but not more than one.");
+              "A mapper element may only specify a url, resource or class, but not more than one.");
           }
         }
       }

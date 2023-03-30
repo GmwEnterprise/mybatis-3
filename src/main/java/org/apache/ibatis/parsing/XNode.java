@@ -15,17 +15,14 @@
  */
 package org.apache.ibatis.parsing;
 
+import org.w3c.dom.CharacterData;
+import org.w3c.dom.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.function.Supplier;
-
-import org.w3c.dom.CharacterData;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * @author Clinton Begin
@@ -81,7 +78,7 @@ public class XNode {
         builder.insert(0, "_");
       }
       String value = current.getStringAttribute("id",
-          current.getStringAttribute("value", current.getStringAttribute("property", (String) null)));
+        current.getStringAttribute("value", current.getStringAttribute("property", (String) null)));
       if (value != null) {
         value = value.replace('.', '_');
         builder.insert(0, "]");
@@ -184,13 +181,9 @@ public class XNode {
    * <p>
    * If attribute value is absent, return value that provided from supplier of default value.
    *
-   * @param name
-   *          attribute name
-   * @param defSupplier
-   *          a supplier of default value
-   *
+   * @param name        attribute name
+   * @param defSupplier a supplier of default value
    * @return the string attribute
-   *
    * @since 3.5.4
    */
   public String getStringAttribute(String name, Supplier<String> defSupplier) {

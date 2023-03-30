@@ -15,11 +15,6 @@
  */
 package org.apache.ibatis.builder;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.regex.Pattern;
-
 import org.apache.ibatis.mapping.ParameterMode;
 import org.apache.ibatis.mapping.ResultSetType;
 import org.apache.ibatis.session.Configuration;
@@ -27,6 +22,11 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeAliasRegistry;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * @author Clinton Begin
@@ -126,7 +126,7 @@ public abstract class BaseBuilder {
     Class<?> type = resolveClass(typeHandlerAlias);
     if (type != null && !TypeHandler.class.isAssignableFrom(type)) {
       throw new BuilderException(
-          "Type " + type.getName() + " is not a valid TypeHandler because it does not implement TypeHandler interface");
+        "Type " + type.getName() + " is not a valid TypeHandler because it does not implement TypeHandler interface");
     }
     @SuppressWarnings("unchecked") // already verified it is a TypeHandler
     Class<? extends TypeHandler<?>> typeHandlerType = (Class<? extends TypeHandler<?>>) type;

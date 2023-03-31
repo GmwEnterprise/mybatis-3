@@ -118,7 +118,9 @@ public class XMLConfigBuilder extends BaseBuilder {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
-    XNode configRoot = parser.evalNode("/configuration"); // 解析出 root 节点
+
+    // 解析出 root 节点，返回可以解析占位符的 XNode 实例
+    XNode configRoot = parser.evalNode("/configuration");
     parseConfiguration(configRoot); // 挨个去配置
     return configuration;
   }
@@ -155,6 +157,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
+        // settings 节点下配置的属性如果 configuration 中没有对应的 setter 就报错
         throw new BuilderException(
           "The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");
       }
@@ -246,7 +249,10 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
+      // 获取所有子节点为属性
       Properties defaults = context.getChildrenAsProperties();
+
+      // resource 或者 url 属性配置的外部链接 properties 会覆盖掉子节点定义的属性
       String resource = context.getStringAttribute("resource");
       String url = context.getStringAttribute("url");
       if (resource != null && url != null) {
@@ -258,12 +264,14 @@ public class XMLConfigBuilder extends BaseBuilder {
       } else if (url != null) {
         defaults.putAll(Resources.getUrlAsProperties(url));
       }
+
+      // 最后，编程式注入的属性会覆盖之前的所有配置，所以编程式注入的属性优先级最高
       Properties vars = configuration.getVariables();
       if (vars != null) {
         defaults.putAll(vars);
       }
       parser.setVariables(defaults);
-      configuration.setVariables(defaults);
+      configuration.setVariables(defaults); // 最后写回 configuration 实例
     }
   }
 

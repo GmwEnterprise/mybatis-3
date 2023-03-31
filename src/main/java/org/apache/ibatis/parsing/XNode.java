@@ -41,7 +41,7 @@ public class XNode {
     this.node = node;
     this.name = node.getNodeName();
     this.variables = variables;
-    this.attributes = parseAttributes(node);
+    this.attributes = parseAttributes(node); // 解析占位符参数
     this.body = parseBody(node);
   }
 

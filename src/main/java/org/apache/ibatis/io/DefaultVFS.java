@@ -15,13 +15,10 @@
  */
 package org.apache.ibatis.io;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import org.apache.ibatis.logging.Log;
+import org.apache.ibatis.logging.LogFactory;
+
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -34,9 +31,6 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
-import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.logging.LogFactory;
-
 /**
  * A default implementation of {@link VFS} that works for most application servers.
  *
@@ -45,8 +39,10 @@ import org.apache.ibatis.logging.LogFactory;
 public class DefaultVFS extends VFS {
   private static final Log log = LogFactory.getLog(DefaultVFS.class);
 
-  /** The magic header that indicates a JAR (ZIP) file. */
-  private static final byte[] JAR_MAGIC = { 'P', 'K', 3, 4 };
+  /**
+   * The magic header that indicates a JAR (ZIP) file.
+   */
+  private static final byte[] JAR_MAGIC = {'P', 'K', 3, 4};
 
   @Override
   public boolean isValid() {
@@ -79,7 +75,7 @@ public class DefaultVFS extends VFS {
               if (log.isDebugEnabled()) {
                 log.debug("Listing " + url);
               }
-              for (JarEntry entry; (entry = jarInput.getNextJarEntry()) != null;) {
+              for (JarEntry entry; (entry = jarInput.getNextJarEntry()) != null; ) {
                 if (log.isDebugEnabled()) {
                   log.debug("Jar entry: " + entry.getName());
                 }
@@ -97,7 +93,7 @@ public class DefaultVFS extends VFS {
             is = url.openStream();
             List<String> lines = new ArrayList<>();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-              for (String line; (line = reader.readLine()) != null;) {
+              for (String line; (line = reader.readLine()) != null; ) {
                 if (log.isDebugEnabled()) {
                   log.debug("Reader entry: " + line);
                 }
@@ -170,15 +166,10 @@ public class DefaultVFS extends VFS {
    * List the names of the entries in the given {@link JarInputStream} that begin with the specified {@code path}.
    * Entries will match with or without a leading slash.
    *
-   * @param jar
-   *          The JAR input stream
-   * @param path
-   *          The leading path to match
-   *
+   * @param jar  The JAR input stream
+   * @param path The leading path to match
    * @return The names of all the matching entries
-   *
-   * @throws IOException
-   *           If I/O errors occur
+   * @throws IOException If I/O errors occur
    */
   protected List<String> listResources(JarInputStream jar, String path) throws IOException {
     // Include the leading and trailing slash when matching names
@@ -191,7 +182,7 @@ public class DefaultVFS extends VFS {
 
     // Iterate over the entries and collect those that begin with the requested path
     List<String> resources = new ArrayList<>();
-    for (JarEntry entry; (entry = jar.getNextJarEntry()) != null;) {
+    for (JarEntry entry; (entry = jar.getNextJarEntry()) != null; ) {
       if (!entry.isDirectory()) {
         // Add leading slash if it's missing
         StringBuilder name = new StringBuilder(entry.getName());
@@ -217,13 +208,9 @@ public class DefaultVFS extends VFS {
    * assuming the URL references a JAR entry, this method will return a URL that references the JAR file containing the
    * entry. If the JAR cannot be located, then this method returns null.
    *
-   * @param url
-   *          The URL of the JAR entry.
-   *
+   * @param url The URL of the JAR entry.
    * @return The URL of the JAR file, if one is found. Null if not.
-   *
-   * @throws MalformedURLException
-   *           the malformed URL exception
+   * @throws MalformedURLException the malformed URL exception
    */
   protected URL findJarForResource(URL url) throws MalformedURLException {
     if (log.isDebugEnabled()) {
@@ -303,9 +290,7 @@ public class DefaultVFS extends VFS {
    * Converts a Java package name to a path that can be looked up with a call to
    * {@link ClassLoader#getResources(String)}.
    *
-   * @param packageName
-   *          The Java package name to convert to a path
-   *
+   * @param packageName The Java package name to convert to a path
    * @return the package path
    */
   protected String getPackagePath(String packageName) {
@@ -315,9 +300,7 @@ public class DefaultVFS extends VFS {
   /**
    * Returns true if the resource located at the given URL is a JAR file.
    *
-   * @param url
-   *          The URL of the resource to test.
-   *
+   * @param url The URL of the resource to test.
    * @return true, if is jar
    */
   protected boolean isJar(URL url) {
@@ -327,12 +310,9 @@ public class DefaultVFS extends VFS {
   /**
    * Returns true if the resource located at the given URL is a JAR file.
    *
-   * @param url
-   *          The URL of the resource to test.
-   * @param buffer
-   *          A buffer into which the first few bytes of the resource are read. The buffer must be at least the size of
-   *          {@link #JAR_MAGIC}. (The same buffer may be reused for multiple calls as an optimization.)
-   *
+   * @param url    The URL of the resource to test.
+   * @param buffer A buffer into which the first few bytes of the resource are read. The buffer must be at least the size of
+   *               {@link #JAR_MAGIC}. (The same buffer may be reused for multiple calls as an optimization.)
    * @return true, if is jar
    */
   protected boolean isJar(URL url, byte[] buffer) {

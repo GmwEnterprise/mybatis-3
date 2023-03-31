@@ -210,7 +210,9 @@ public class XPathParser {
     if (node == null) {
       return null;
     }
-    // mybatis 自定义的 XNode
+    // mybatis 自定义的 XNode，这是为了实现占位符解析特意单独实现的类
+    // XNode 的构造方法中，占位符参数就已经实现了解析
+    // 返回 XNode 时又把 this 带进去了
     return new XNode(this, node, variables);
   }
 

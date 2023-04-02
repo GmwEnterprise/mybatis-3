@@ -15,6 +15,14 @@
  */
 package org.apache.ibatis.session.defaults;
 
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ibatis.binding.BindingException;
 import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.exceptions.ExceptionFactory;
@@ -30,14 +38,6 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
-
-import java.io.IOException;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * The default implementation for {@link SqlSession}. Note that this class is not Thread-Safe.
@@ -80,7 +80,7 @@ public class DefaultSqlSession implements SqlSession {
     }
     if (list.size() > 1) {
       throw new TooManyResultsException(
-        "Expected one result (or null) to be returned by selectOne(), but found: " + list.size());
+          "Expected one result (or null) to be returned by selectOne(), but found: " + list.size());
     } else {
       return null;
     }
@@ -102,7 +102,7 @@ public class DefaultSqlSession implements SqlSession {
     final List<? extends V> list = selectList(statement, parameter, rowBounds);
 
     final DefaultMapResultHandler<K, V> mapResultHandler = new DefaultMapResultHandler<>(mapKey,
-      configuration.getObjectFactory(), configuration.getObjectWrapperFactory(), configuration.getReflectorFactory());
+        configuration.getObjectFactory(), configuration.getObjectWrapperFactory(), configuration.getReflectorFactory());
     final DefaultResultContext<V> context = new DefaultResultContext<>();
     for (V o : list) {
       context.nextResultObject(o);

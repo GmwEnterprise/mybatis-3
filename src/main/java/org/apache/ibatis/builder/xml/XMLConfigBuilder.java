@@ -92,14 +92,11 @@ public class XMLConfigBuilder extends BaseBuilder {
                           Properties props) {
     this(configClass,
       // 构造一个 XPathParser 实例，后面用来解析配置文件
-      new XPathParser(inputStream, true, props, new XMLMapperEntityResolver()),
-      environment, props
-    );
+      new XPathParser(inputStream, true, props, new XMLMapperEntityResolver()), environment, props);
   }
 
-  private XMLConfigBuilder(Class<? extends Configuration> configClass,
-                           XPathParser parser,
-                           String environment, Properties props) {
+  private XMLConfigBuilder(Class<? extends Configuration> configClass, XPathParser parser, String environment,
+                           Properties props) {
     // 获取 configClass 的无参构造方法然后创建实例，提交给父类构造函数
     // configuration 成员定义在父类中的
     super(newConfig(configClass));

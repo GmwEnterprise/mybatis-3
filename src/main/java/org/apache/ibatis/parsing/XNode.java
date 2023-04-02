@@ -41,7 +41,7 @@ public class XNode {
     this.node = node;
     this.name = node.getNodeName();
     this.variables = variables;
-    this.attributes = parseAttributes(node); // 解析占位符参数
+    this.attributes = parseAttributes(node);
     this.body = parseBody(node);
   }
 
@@ -318,12 +318,19 @@ public class XNode {
     }
   }
 
+  /**
+   * 解析标签对象的属性
+   */
   private Properties parseAttributes(Node n) {
     Properties attributes = new Properties();
+
+    // 遍历 Node 节点的属性
     NamedNodeMap attributeNodes = n.getAttributes();
     if (attributeNodes != null) {
       for (int i = 0; i < attributeNodes.getLength(); i++) {
         Node attribute = attributeNodes.item(i);
+
+        // 使用 PropertyParser 解析占位符值
         String value = PropertyParser.parse(attribute.getNodeValue(), variables);
         attributes.put(attribute.getNodeName(), value);
       }
@@ -331,6 +338,9 @@ public class XNode {
     return attributes;
   }
 
+  /**
+   * 解析标签对象的 body
+   */
   private String parseBody(Node node) {
     String data = getBodyData(node);
     if (data == null) {
@@ -348,7 +358,12 @@ public class XNode {
 
   private String getBodyData(Node child) {
     if (child.getNodeType() == Node.CDATA_SECTION_NODE || child.getNodeType() == Node.TEXT_NODE) {
+      // 该 Node 为 textNode 或者 CDataSection 才读取其 body 字符串内容
+      // CDATA 区段包含了不会被解析器解析的文本。一个 CDATA 区段中的标签不会被视为标记，同时实体也不会被展开
+      // https://www.runoob.com/dom/dom-cdatasection.html
       String data = ((CharacterData) child).getData();
+
+      // 解析占位符内容
       return PropertyParser.parse(data, variables);
     }
     return null;

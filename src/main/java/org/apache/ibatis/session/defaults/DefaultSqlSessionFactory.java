@@ -15,6 +15,9 @@
  */
 package org.apache.ibatis.session.defaults;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import org.apache.ibatis.exceptions.ExceptionFactory;
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.executor.Executor;
@@ -23,9 +26,6 @@ import org.apache.ibatis.session.*;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.transaction.managed.ManagedTransactionFactory;
-
-import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * @author Clinton Begin
@@ -84,7 +84,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
   }
 
   private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level,
-                                               boolean autoCommit) {
+      boolean autoCommit) {
     Transaction tx = null;
     try {
       // 为当前 SqlSession 创建一个需要的事务实例

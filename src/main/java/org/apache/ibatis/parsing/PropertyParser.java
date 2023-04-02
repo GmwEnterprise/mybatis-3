@@ -54,6 +54,8 @@ public class PropertyParser {
 
   public static String parse(String string, Properties variables) {
     VariableTokenHandler handler = new VariableTokenHandler(variables);
+
+    // 使用 GenericTokenParser 来解析占位符属性
     GenericTokenParser parser = new GenericTokenParser("${", "}", handler);
     return parser.parse(string);
   }
@@ -65,7 +67,9 @@ public class PropertyParser {
 
     private VariableTokenHandler(Properties variables) {
       this.variables = variables;
+      // 是否启用了默认值，默认为 false，该值取自 variables['org.apache.ibatis.parsing.PropertyParser.enable-default-value']
       this.enableDefaultValue = Boolean.parseBoolean(getPropertyValue(KEY_ENABLE_DEFAULT_VALUE, ENABLE_DEFAULT_VALUE));
+      // 默认值分隔符，默认为 ':'，该值取自 variables['org.apache.ibatis.parsing.PropertyParser.default-value-separator']
       this.defaultValueSeparator = getPropertyValue(KEY_DEFAULT_VALUE_SEPARATOR, DEFAULT_VALUE_SEPARATOR);
     }
 
@@ -78,10 +82,13 @@ public class PropertyParser {
       if (variables != null) {
         String key = content;
         if (enableDefaultValue) {
+          // ${key:default} 这样的表达式可以支持 default 默认值，如果没有指定的 key 属性则使用默认值
           final int separatorIndex = content.indexOf(defaultValueSeparator);
           String defaultValue = null;
           if (separatorIndex >= 0) {
+            // 分隔符之前即为 key
             key = content.substring(0, separatorIndex);
+            // 分隔符之后即为默认值 default
             defaultValue = content.substring(separatorIndex + defaultValueSeparator.length());
           }
           if (defaultValue != null) {
@@ -92,6 +99,7 @@ public class PropertyParser {
           return variables.getProperty(key);
         }
       }
+      // 若没有找到指定的值，则最终返回配置的原本形式 ${xxx}
       return "${" + content + "}";
     }
   }

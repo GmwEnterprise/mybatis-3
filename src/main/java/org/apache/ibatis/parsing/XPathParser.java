@@ -15,11 +15,12 @@
  */
 package org.apache.ibatis.parsing;
 
-import org.apache.ibatis.builder.BuilderException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.*;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -28,12 +29,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
-import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+
+import org.apache.ibatis.builder.BuilderException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.*;
 
 /**
  * @author Clinton Begin
@@ -117,6 +118,15 @@ public class XPathParser {
     this.document = createDocument(new InputSource(reader));
   }
 
+  /**
+   * XMLConfigBuilder 中构造 XPathParser 的构造入口<br>
+   * 在其中创建了 xml 文件的 Document 对象
+   *
+   * @param inputStream    input
+   * @param validation     true
+   * @param variables      props
+   * @param entityResolver XMLMapperEntityResolver
+   */
   public XPathParser(InputStream inputStream, boolean validation, Properties variables, EntityResolver entityResolver) {
     commonConstructor(validation, variables, entityResolver);
     this.document = createDocument(new InputSource(inputStream));
@@ -206,19 +216,17 @@ public class XPathParser {
   }
 
   public XNode evalNode(Object root, String expression) {
+    // 使用 javax 提供的 XPath 解析出需要的 Node 节点
     Node node = (Node) evaluate(expression, root, XPathConstants.NODE);
     if (node == null) {
       return null;
     }
-    // mybatis 自定义的 XNode，这是为了实现占位符解析特意单独实现的类
-    // XNode 的构造方法中，占位符参数就已经实现了解析
-    // 返回 XNode 时又把 this 带进去了
+    // 对节点进行包装，直接对占位符类型的值进行解析；解析的值来源即 variables，也就是一开始传入的 properties
     return new XNode(this, node, variables);
   }
 
   private Object evaluate(String expression, Object root, QName returnType) {
     try {
-      // 使用 javax 提供的 XPath
       return xpath.evaluate(expression, root, returnType);
     } catch (Exception e) {
       throw new BuilderException("Error evaluating XPath.  Cause: " + e, e);

@@ -160,7 +160,7 @@ public class TypeAliasRegistry {
       throw new TypeException("The parameter alias cannot be null");
     }
     // issue #748
-    String key = alias.toLowerCase(Locale.ENGLISH);
+    String key = alias.toLowerCase(Locale.ENGLISH); // alias 的值给进来后直接转小写，也就意味着不是驼峰命名？
     if (typeAliases.containsKey(key) && typeAliases.get(key) != null && !typeAliases.get(key).equals(value)) {
       throw new TypeException(
           "The alias '" + alias + "' is already mapped to the value '" + typeAliases.get(key).getName() + "'.");

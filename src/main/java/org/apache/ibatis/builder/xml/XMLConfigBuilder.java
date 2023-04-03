@@ -124,13 +124,25 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void parseConfiguration(XNode root) {
     try {
-      // issue #117 read properties first
+      // 解析 properties 和 settings，并将 settings 也作为 properties
+      // 配置优先级：编程式属性 > 外部链接属性 > 标签配置属性
       propertiesElement(root.evalNode("properties"));
+
+      // settings 节点下的配置，name 必须存在于 Configuration 实例且提供了 setter
+      // 可以通过继承 Configuration 的方式，支持更多的客制化配置
       Properties settings = settingsAsProperties(root.evalNode("settings"));
-      loadCustomVfs(settings);
+
+      // 根据配置加载 vfs 和 log 组件
+      loadCustomVfs(settings); // vfs 指「虚拟文件系统」，mybatis 用它来加载自定义的 mapper 和 typeAlias 类
       loadCustomLogImpl(settings);
+
+      // 类型别名配置
       typeAliasesElement(root.evalNode("typeAliases"));
+
+      // 插件配置
       pluginElement(root.evalNode("plugins"));
+
+      // 对象、反射工厂配置
       objectFactoryElement(root.evalNode("objectFactory"));
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
@@ -145,21 +157,21 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
-  private Properties settingsAsProperties(XNode context) {
-    if (context == null) {
+  private Properties settingsAsProperties(XNode settingsNode) {
+    if (settingsNode == null) {
       return new Properties();
     }
-    Properties props = context.getChildrenAsProperties();
+    Properties settingsProps = settingsNode.getChildrenAsProperties();
     // Check that all settings are known to the configuration class
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
-    for (Object key : props.keySet()) {
+    for (Object key : settingsProps.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
         // settings 节点下配置的属性如果 configuration 中没有对应的 setter 就报错
         throw new BuilderException(
           "The setting " + key + " is not known.  Make sure you spelled it correctly (case sensitive).");
       }
     }
-    return props;
+    return settingsProps;
   }
 
   private void loadCustomVfs(Properties props) throws ClassNotFoundException {
@@ -244,6 +256,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 配置优先级：编程式属性 > 外部链接属性 > 标签配置属性
+   */
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
       // 获取所有子节点为属性

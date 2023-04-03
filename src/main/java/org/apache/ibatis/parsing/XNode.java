@@ -248,17 +248,19 @@ public class XNode {
   public List<XNode> getChildren() {
     List<XNode> children = new ArrayList<>();
     NodeList nodeList = node.getChildNodes();
-    if (nodeList != null) {
-      for (int i = 0, n = nodeList.getLength(); i < n; i++) {
-        Node node = nodeList.item(i);
-        if (node.getNodeType() == Node.ELEMENT_NODE) {
-          children.add(new XNode(xpathParser, node, variables));
-        }
+    for (int i = 0, n = nodeList.getLength(); i < n; i++) {
+      Node node = nodeList.item(i);
+      if (node.getNodeType() == Node.ELEMENT_NODE) {
+        children.add(new XNode(xpathParser, node, variables));
       }
     }
     return children;
   }
 
+  /**
+   * 多个子节点、类似 {@code <elem name="" value=""/>} 的<br>
+   * 直接将其读取作为属性，就不再往下读了
+   */
   public Properties getChildrenAsProperties() {
     Properties properties = new Properties();
     for (XNode child : getChildren()) {

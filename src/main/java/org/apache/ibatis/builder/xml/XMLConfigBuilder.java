@@ -128,7 +128,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       // 配置优先级：编程式属性 > 外部链接属性 > 标签配置属性
       propertiesElement(root.evalNode("properties"));
 
-      // settings 节点下的配置，name 必须存在于 Configuration 实例且提供了 setter
+      // 将 settings 节点下的配置全部取出，name 必须存在于 Configuration 实例且提供了 setter
       // 可以通过继承 Configuration 的方式，支持更多的客制化配置
       Properties settings = settingsAsProperties(root.evalNode("settings"));
 
@@ -139,14 +139,17 @@ public class XMLConfigBuilder extends BaseBuilder {
       // 类型别名配置
       typeAliasesElement(root.evalNode("typeAliases"));
 
-      // 插件配置
+      // 插件配置：设置和匹配时都会将 alias 转换为全小写
       pluginElement(root.evalNode("plugins"));
 
-      // 对象、反射工厂配置
+      // 对象、反射工厂配置 TODO
       objectFactoryElement(root.evalNode("objectFactory"));
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
+
+      // mybatis 支持的设置全部在这里初始化
       settingsElement(settings);
+
       // read it after objectFactory and objectWrapperFactory issue #631
       environmentsElement(root.evalNode("environments"));
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));

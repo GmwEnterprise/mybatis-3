@@ -37,7 +37,6 @@ import org.apache.ibatis.session.*;
 import org.apache.ibatis.transaction.TransactionFactory;
 import org.apache.ibatis.type.JdbcType;
 
-import javax.sql.DataSource;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.Properties;
@@ -142,7 +141,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       // 插件配置：设置和匹配时都会将 alias 转换为全小写
       pluginElement(root.evalNode("plugins"));
 
-      // 对象、反射工厂配置 TODO
+      // 各种工厂配置
       objectFactoryElement(root.evalNode("objectFactory"));
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
       reflectorFactoryElement(root.evalNode("reflectorFactory"));
@@ -150,10 +149,16 @@ public class XMLConfigBuilder extends BaseBuilder {
       // mybatis 支持的设置全部在这里初始化
       settingsElement(settings);
 
+      // 设置环境
       // read it after objectFactory and objectWrapperFactory issue #631
       environmentsElement(root.evalNode("environments"));
+
       databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+
+      // 和 typeAlias 的解析方式比较类似
       typeHandlerElement(root.evalNode("typeHandlers"));
+
+      // 解析 mapper 配置
       mapperElement(root.evalNode("mappers"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
@@ -327,19 +332,19 @@ public class XMLConfigBuilder extends BaseBuilder {
     configuration.setNullableOnForEach(booleanValueOf(props.getProperty("nullableOnForEach"), false));
   }
 
-  private void environmentsElement(XNode context) throws Exception {
-    if (context != null) {
+  private void environmentsElement(XNode envNode) throws Exception {
+    if (envNode != null) {
       if (environment == null) {
-        environment = context.getStringAttribute("default");
+        environment = envNode.getStringAttribute("default");
       }
-      for (XNode child : context.getChildren()) {
+      for (XNode child : envNode.getChildren()) {
         String id = child.getStringAttribute("id");
         if (isSpecifiedEnvironment(id)) {
-          TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
-          DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
-          DataSource dataSource = dsFactory.getDataSource();
-          Environment.Builder environmentBuilder = new Environment.Builder(id).transactionFactory(txFactory)
-            .dataSource(dataSource);
+          // mybatis 只加载 <environments default="dbID"> 中 dbID 指定的那个 <environment id="dbID"> 元素
+          // 也就是说在单纯只用 mybatis 不用 spring 时，就可以通过 environments#default 来控制 profile
+          Environment.Builder environmentBuilder = new Environment.Builder(id)
+            .transactionFactory(transactionManagerElement(child.evalNode("transactionManager")))
+            .dataSource(dataSourceElement(child.evalNode("dataSource")).getDataSource());
           configuration.setEnvironment(environmentBuilder.build());
           break;
         }
@@ -388,9 +393,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     throw new BuilderException("Environment declaration requires a DataSourceFactory.");
   }
 
-  private void typeHandlerElement(XNode parent) {
-    if (parent != null) {
-      for (XNode child : parent.getChildren()) {
+  private void typeHandlerElement(XNode typeHandlersNode) {
+    if (typeHandlersNode != null) {
+      for (XNode child : typeHandlersNode.getChildren()) {
         if ("package".equals(child.getName())) {
           String typeHandlerPackage = child.getStringAttribute("name");
           typeHandlerRegistry.register(typeHandlerPackage);
@@ -399,9 +404,10 @@ public class XMLConfigBuilder extends BaseBuilder {
           String jdbcTypeName = child.getStringAttribute("jdbcType");
           String handlerTypeName = child.getStringAttribute("handler");
           Class<?> javaTypeClass = resolveClass(javaTypeName);
-          JdbcType jdbcType = resolveJdbcType(jdbcTypeName);
           Class<?> typeHandlerClass = resolveClass(handlerTypeName);
           if (javaTypeClass != null) {
+
+            JdbcType jdbcType = resolveJdbcType(jdbcTypeName);
             if (jdbcType == null) {
               typeHandlerRegistry.register(javaTypeClass, typeHandlerClass);
             } else {
@@ -415,9 +421,9 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
-  private void mapperElement(XNode parent) throws Exception {
-    if (parent != null) {
-      for (XNode child : parent.getChildren()) {
+  private void mapperElement(XNode mappersNode) throws Exception {
+    if (mappersNode != null) {
+      for (XNode child : mappersNode.getChildren()) {
         if ("package".equals(child.getName())) {
           String mapperPackage = child.getStringAttribute("name");
           configuration.addMappers(mapperPackage);

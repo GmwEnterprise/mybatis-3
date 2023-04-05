@@ -108,6 +108,9 @@ public class TypeAliasRegistry {
     registerAlias("ResultSet", ResultSet.class);
   }
 
+  /**
+   * 根据 alias 查找配置指定的类；若查不到，则当成全限定名去类加载器中找类
+   */
   @SuppressWarnings("unchecked")
   // throws class cast exception as well if types cannot be assigned
   public <T> Class<T> resolveAlias(String string) {

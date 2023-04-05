@@ -122,10 +122,14 @@ public class XPathParser {
    * XMLConfigBuilder 中构造 XPathParser 的构造入口<br>
    * 在其中创建了 xml 文件的 Document 对象
    *
-   * @param inputStream    input
-   * @param validation     true
-   * @param variables      props
-   * @param entityResolver XMLMapperEntityResolver
+   * @param inputStream
+   *          input
+   * @param validation
+   *          true
+   * @param variables
+   *          props
+   * @param entityResolver
+   *          XMLMapperEntityResolver
    */
   public XPathParser(InputStream inputStream, boolean validation, Properties variables, EntityResolver entityResolver) {
     commonConstructor(validation, variables, entityResolver);

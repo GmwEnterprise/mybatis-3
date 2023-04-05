@@ -15,16 +15,12 @@
  */
 package org.apache.ibatis.binding;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ibatis.builder.annotation.MapperAnnotationBuilder;
 import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
+
+import java.util.*;
 
 /**
  * @author Clinton Begin
@@ -83,7 +79,6 @@ public class MapperRegistry {
    * Gets the mappers.
    *
    * @return the mappers
-   *
    * @since 3.2.2
    */
   public Collection<Class<?>> getMappers() {
@@ -93,11 +88,8 @@ public class MapperRegistry {
   /**
    * Adds the mappers.
    *
-   * @param packageName
-   *          the package name
-   * @param superType
-   *          the super type
-   *
+   * @param packageName the package name
+   * @param superType   the super type
    * @since 3.2.2
    */
   public void addMappers(String packageName, Class<?> superType) {
@@ -112,9 +104,7 @@ public class MapperRegistry {
   /**
    * Adds the mappers.
    *
-   * @param packageName
-   *          the package name
-   *
+   * @param packageName the package name
    * @since 3.2.2
    */
   public void addMappers(String packageName) {

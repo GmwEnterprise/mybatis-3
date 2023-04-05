@@ -20,16 +20,17 @@ import java.util.Properties;
 
 /**
  * MyBatis uses an ObjectFactory to create all needed new Objects.<br>
- * 该工厂用于创建所有需要的对象
+ * 该工厂用于创建所有需要的对象，无非就提供了两个可调用的 create 方法，用于实例化对象
  *
  * @author Clinton Begin
  */
 public interface ObjectFactory {
 
   /**
-   * Sets configuration properties.
+   * Sets configuration properties.<br>
    *
-   * @param properties configuration properties
+   * @param properties
+   *          configuration properties
    */
   default void setProperties(Properties properties) {
     // NOP
@@ -38,8 +39,11 @@ public interface ObjectFactory {
   /**
    * Creates a new object with default constructor.
    *
-   * @param <T>  the generic type
-   * @param type Object type
+   * @param <T>
+   *          the generic type
+   * @param type
+   *          Object type
+   *
    * @return the t
    */
   <T> T create(Class<T> type);
@@ -47,10 +51,15 @@ public interface ObjectFactory {
   /**
    * Creates a new object with the specified constructor and params.
    *
-   * @param <T>                 the generic type
-   * @param type                Object type
-   * @param constructorArgTypes Constructor argument types
-   * @param constructorArgs     Constructor argument values
+   * @param <T>
+   *          the generic type
+   * @param type
+   *          Object type
+   * @param constructorArgTypes
+   *          Constructor argument types
+   * @param constructorArgs
+   *          Constructor argument values
+   *
    * @return the t
    */
   <T> T create(Class<T> type, List<Class<?>> constructorArgTypes, List<Object> constructorArgs);
@@ -59,9 +68,13 @@ public interface ObjectFactory {
    * Returns true if this object can have a set of other objects. It's main purpose is to support
    * non-java.util.Collection objects like Scala collections.
    *
-   * @param <T>  the generic type
-   * @param type Object type
+   * @param <T>
+   *          the generic type
+   * @param type
+   *          Object type
+   *
    * @return whether it is a collection or not
+   *
    * @since 3.1.0
    */
   <T> boolean isCollection(Class<T> type);

@@ -108,6 +108,10 @@ public abstract class BaseBuilder {
     }
   }
 
+  /**
+   * 给定类全限定名，或者 alias，然后找到类<br>
+   * 按照 mybatis 限定的 xml 配置文件编写方式，基本上排在 typeAlias 设置之后的，都支持使用 alias 找类了
+   */
   protected <T> Class<? extends T> resolveClass(String alias) {
     if (alias == null) {
       return null;

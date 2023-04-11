@@ -15,15 +15,15 @@
  */
 package org.apache.ibatis.mapping;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Clinton Begin
@@ -145,16 +145,16 @@ public class ResultMapping {
       // Issue #697: cannot define both nestedQueryId and nestedResultMapId
       if (resultMapping.nestedQueryId != null && resultMapping.nestedResultMapId != null) {
         throw new IllegalStateException(
-            "Cannot define both nestedQueryId and nestedResultMapId in property " + resultMapping.property);
+          "Cannot define both nestedQueryId and nestedResultMapId in property " + resultMapping.property);
       }
       // Issue #5: there should be no mappings without typehandler
       if (resultMapping.nestedQueryId == null && resultMapping.nestedResultMapId == null
-          && resultMapping.typeHandler == null) {
+        && resultMapping.typeHandler == null) {
         throw new IllegalStateException("No typehandler found for property " + resultMapping.property);
       }
       // Issue #4 and GH #39: column is optional only in nested resultmaps but not in the rest
       if (resultMapping.nestedResultMapId == null && resultMapping.column == null
-          && resultMapping.composites.isEmpty()) {
+        && resultMapping.composites.isEmpty()) {
         throw new IllegalStateException("Mapping is missing column attribute for property " + resultMapping.property);
       }
       if (resultMapping.getResultSet() != null) {
@@ -168,7 +168,7 @@ public class ResultMapping {
         }
         if (numColumns != numForeignColumns) {
           throw new IllegalStateException(
-              "There should be the same number of columns and foreignColumns in property " + resultMapping.property);
+            "There should be the same number of columns and foreignColumns in property " + resultMapping.property);
         }
       }
     }

@@ -431,24 +431,35 @@ public class XMLConfigBuilder extends BaseBuilder {
           String resource = child.getStringAttribute("resource");
           String url = child.getStringAttribute("url");
           String mapperClass = child.getStringAttribute("class");
+
+          // <mapper resource="xxx"/>
           if (resource != null && url == null && mapperClass == null) {
             ErrorContext.instance().resource(resource);
             try (InputStream inputStream = Resources.getResourceAsStream(resource)) {
               XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, resource,
                 configuration.getSqlFragments());
-              mapperParser.parse();
+              mapperParser.parse(); // 解析后添加
             }
-          } else if (resource == null && url != null && mapperClass == null) {
+          }
+
+          // <mapper url="xxx"/>
+          else if (resource == null && url != null && mapperClass == null) {
             ErrorContext.instance().resource(url);
             try (InputStream inputStream = Resources.getUrlAsStream(url)) {
               XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration, url,
                 configuration.getSqlFragments());
-              mapperParser.parse();
+              mapperParser.parse(); // 解析后添加
             }
-          } else if (resource == null && url == null && mapperClass != null) {
+          }
+
+          // <mapper class="xxx"/>
+          else if (resource == null && url == null && mapperClass != null) {
             Class<?> mapperInterface = Resources.classForName(mapperClass);
-            configuration.addMapper(mapperInterface);
-          } else {
+            configuration.addMapper(mapperInterface); // 直接添加到 mapperRegistry
+          }
+
+          // 报错
+          else {
             throw new BuilderException(
               "A mapper element may only specify a url, resource or class, but not more than one.");
           }

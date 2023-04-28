@@ -54,6 +54,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       throw new BuilderException("The mapper element requires a namespace attribute to be specified.");
     }
 
+    // 应该是只让设置同样的值，不然就报错
     if (this.currentNamespace != null && !this.currentNamespace.equals(currentNamespace)) {
       throw new BuilderException(
         "Wrong namespace. Expected '" + this.currentNamespace + "' but found '" + currentNamespace + "'.");

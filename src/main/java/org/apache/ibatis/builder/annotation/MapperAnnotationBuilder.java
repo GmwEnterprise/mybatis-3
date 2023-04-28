@@ -65,6 +65,7 @@ public class MapperAnnotationBuilder {
   private final Class<?> type;
 
   public MapperAnnotationBuilder(Configuration configuration, Class<?> type) {
+    // cn/mragofficial/demos/mybatis/TestTableMapper.java (best guess)
     String resource = type.getName().replace('.', '/') + ".java (best guess)";
     this.assistant = new MapperBuilderAssistant(configuration, resource);
     this.configuration = configuration;
@@ -72,19 +73,23 @@ public class MapperAnnotationBuilder {
   }
 
   public void parse() {
-    String resource = type.toString();
-    if (!configuration.isResourceLoaded(resource)) {
-      loadXmlResource();
-      configuration.addLoadedResource(resource);
+    String resource = type.toString(); // interface cn.mragofficial.demos.mybatis.TestTableMapper
+    if (!configuration.isResourceLoaded(resource)) { // 没加载过这个 mapper 资源
+      loadXmlResource(); // 没找到的话就不管，就当是加载过了
+      configuration.addLoadedResource(resource); // 保存加载过的资源到配置
       assistant.setCurrentNamespace(type.getName());
-      parseCache();
+      parseCache(); // 没用过 cache 相关的 mybatis 注解，也不太可能会用，暂时不管
       parseCacheRef();
+
+      // 遍历接口中定义的方法，以及接口的父接口定义的方法
       for (Method method : type.getMethods()) {
         if (!canHaveStatement(method)) {
           continue;
         }
         if (getAnnotationWrapper(method, false, Select.class, SelectProvider.class).isPresent()
           && method.getAnnotation(ResultMap.class) == null) {
+          // 注解标注的 select 语句，且没有标记 resultMap 注解
+          // TODO 分析这里是如何创建 resultMap 的
           parseResultMap(method);
         }
         try {
@@ -99,6 +104,8 @@ public class MapperAnnotationBuilder {
 
   private static boolean canHaveStatement(Method method) {
     // issue #237
+    // 桥函数，是 jvm 编译产生的中间层函数，通常用于泛型擦除
+    // mapper 接口可以有 default 方法
     return !method.isBridge() && !method.isDefault();
   }
 
@@ -121,19 +128,26 @@ public class MapperAnnotationBuilder {
     // Spring may not know the real resource name so we check a flag
     // to prevent loading again a resource twice
     // this flag is set at XMLMapperBuilder#bindMapperForNamespace
+
+    // namespace 资源中如果没找到 (应该意思是防止 spring 环境中找到接口类又加载一次资源)
     if (!configuration.isResourceLoaded("namespace:" + type.getName())) {
+      // 找同类路径同名 xml 文件
       String xmlResource = type.getName().replace('.', '/') + ".xml";
       // #1347
       InputStream inputStream = type.getResourceAsStream("/" + xmlResource);
       if (inputStream == null) {
+        // 没找到
         // Search XML mapper that is not in the module but in the classpath.
         try {
+          // 继续找类所在 jar 里的 xml 文件
           inputStream = Resources.getResourceAsStream(type.getClassLoader(), xmlResource);
         } catch (IOException e2) {
+          // 还是没找到，就不管了
           // ignore, resource is not required
         }
       }
       if (inputStream != null) {
+        // 如果找到了
         XMLMapperBuilder xmlParser = new XMLMapperBuilder(inputStream, assistant.getConfiguration(), xmlResource,
           configuration.getSqlFragments(), type.getName());
         xmlParser.parse();
@@ -142,6 +156,7 @@ public class MapperAnnotationBuilder {
   }
 
   private void parseCache() {
+    // 没用过，不管
     CacheNamespace cacheDomain = type.getAnnotation(CacheNamespace.class);
     if (cacheDomain != null) {
       Integer size = cacheDomain.size() == 0 ? null : cacheDomain.size();
@@ -164,6 +179,7 @@ public class MapperAnnotationBuilder {
   }
 
   private void parseCacheRef() {
+    // 也没用过，不管
     CacheNamespaceRef cacheDomainRef = type.getAnnotation(CacheNamespaceRef.class);
     if (cacheDomainRef != null) {
       Class<?> refType = cacheDomainRef.value();

@@ -421,6 +421,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  // 配置文件中构建 mapper xml 实例
   private void mapperElement(XNode mappersNode) throws Exception {
     if (mappersNode != null) {
       for (XNode child : mappersNode.getChildren()) {

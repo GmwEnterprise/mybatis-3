@@ -89,7 +89,8 @@ public class MapperAnnotationBuilder {
         if (getAnnotationWrapper(method, false, Select.class, SelectProvider.class).isPresent()
           && method.getAnnotation(ResultMap.class) == null) {
           // 注解标注的 select 语句，且没有标记 resultMap 注解
-          // TODO 分析这里是如何创建 resultMap 的
+          // 这个 @ResultMap 注解是用来指定已定义好的 resultMap 的，不是用来生成的
+
           parseResultMap(method);
         }
         try {
@@ -200,20 +201,32 @@ public class MapperAnnotationBuilder {
   }
 
   private String parseResultMap(Method method) {
+    // 返回类型；如果是集合类型，返回集合类型的元素类型
     Class<?> returnType = getReturnType(method, type);
+
+    // 是否标记了一个或多个 Arg 注解；若有，则提取出来
     Arg[] args = method.getAnnotationsByType(Arg.class);
+
+    // 是否标记了一个或多个 Result 注解；若有，则提取出来
     Result[] results = method.getAnnotationsByType(Result.class);
+
+    // TypeDiscriminator 作用是通过 case 来确定最终生成的返回值类型，具体看注解的注释
     TypeDiscriminator typeDiscriminator = method.getAnnotation(TypeDiscriminator.class);
+
+    // 根据 method 生成一个 ResultMapId
     String resultMapId = generateResultMapName(method);
+
+    //
     applyResultMap(resultMapId, returnType, args, results, typeDiscriminator);
     return resultMapId;
   }
 
   private String generateResultMapName(Method method) {
     Results results = method.getAnnotation(Results.class);
-    if (results != null && !results.id().isEmpty()) {
-      return type.getName() + "." + results.id();
+    if (results != null && !results.id().isEmpty()) { // 如果方法上有使用 @Results 注解创建 ResultMap
+      return type.getName() + "." + results.id(); // 可以看出 resultMapId 为类全限定名+id
     }
+
     StringBuilder suffix = new StringBuilder();
     for (Class<?> c : method.getParameterTypes()) {
       suffix.append("-");
@@ -222,14 +235,22 @@ public class MapperAnnotationBuilder {
     if (suffix.length() < 1) {
       suffix.append("-void");
     }
+    // 所以，没有指定 resultMap 的 select 方法实际上被默认都赋予了一个独享的 resultMap
     return type.getName() + "." + method.getName() + suffix;
   }
 
-  private void applyResultMap(String resultMapId, Class<?> returnType, Arg[] args, Result[] results,
+  private void applyResultMap(String resultMapId,
+                              Class<?> returnType,
+                              Arg[] args,
+                              Result[] results,
                               TypeDiscriminator discriminator) {
+    // 初始化 target
     List<ResultMapping> resultMappings = new ArrayList<>();
+    // 应用 Arg 注解
     applyConstructorArgs(args, returnType, resultMappings);
+    // 应用 Result 注解
     applyResults(results, returnType, resultMappings);
+    // 应用 TypeDiscriminator 注解
     Discriminator disc = applyDiscriminator(resultMapId, returnType, discriminator);
     // TODO add AutoMappingBehaviour
     assistant.addResultMap(resultMapId, returnType, null, disc, resultMappings, null);

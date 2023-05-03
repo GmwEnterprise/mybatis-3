@@ -34,6 +34,9 @@ import java.util.*;
  */
 public class MapperBuilderAssistant extends BaseBuilder {
 
+  /**
+   * 绑定每个 mapper，每个 mapper 隶属于一个 namespace；xml 文件上有写
+   */
   private String currentNamespace;
   private final String resource;
   private Cache currentCache;
@@ -70,17 +73,22 @@ public class MapperBuilderAssistant extends BaseBuilder {
     if (isReference) {
       // is it qualified with any namespace yet?
       if (base.contains(".")) {
+        // isReference 表示引用了别的 resultMap 作为父 resultMap
         return base;
       }
     } else {
       // is it qualified with this namespace yet?
       if (base.startsWith(currentNamespace + ".")) {
+        // 当前 resultMap 若指定了命名空间，那必须是本 mapper 的命名空间
+        // 没人会这么写的
         return base;
       }
       if (base.contains(".")) {
         throw new BuilderException("Dots are not allowed in element names, please remove it from " + base);
       }
     }
+
+    // 这里才是正常归属。。。
     return currentNamespace + "." + base;
   }
 
@@ -132,17 +140,26 @@ public class MapperBuilderAssistant extends BaseBuilder {
       .resultMapId(resultMap).mode(parameterMode).numericScale(numericScale).typeHandler(typeHandlerInstance).build();
   }
 
-  public ResultMap addResultMap(String id, Class<?> type, String extend, Discriminator discriminator,
-                                List<ResultMapping> resultMappings, Boolean autoMapping) {
+  public ResultMap addResultMap(String id, // resultMapId
+                                Class<?> type, // return type
+                                String extend, // 父 resultMapId，resultMap 是可以继承的，提取共有属性
+                                Discriminator discriminator, // TypeDiscriminator 注解应用后的实例
+                                List<ResultMapping> resultMappings, // 整理好的 resultMapping 集合
+                                Boolean autoMapping // 自动映射 ? fixme
+  ) {
     id = applyCurrentNamespace(id, false);
     extend = applyCurrentNamespace(extend, true);
 
+    // 如果有父 resultMap 指定
     if (extend != null) {
       if (!configuration.hasResultMap(extend)) {
         throw new IncompleteElementException("Could not find a parent resultmap with id '" + extend + "'");
       }
+
+      // 把父 resultMap 中的映射全部提取出来
       ResultMap resultMap = configuration.getResultMap(extend);
       List<ResultMapping> extendedResultMappings = new ArrayList<>(resultMap.getResultMappings());
+      // 子 resultMap 可以覆盖父 resultMap 中定义的映射
       extendedResultMappings.removeAll(resultMappings);
       // Remove parent constructor if this resultMap declares a constructor.
       boolean declaresConstructor = false;
@@ -153,10 +170,13 @@ public class MapperBuilderAssistant extends BaseBuilder {
         }
       }
       if (declaresConstructor) {
+        // 子 resultMap 若定义了构造函数参数，那么移除父 resultMap 中定义的
         extendedResultMappings.removeIf(resultMapping -> resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR));
       }
       resultMappings.addAll(extendedResultMappings);
     }
+
+    // 构造目标 resultMap
     ResultMap resultMap = new ResultMap.Builder(configuration, id, type, resultMappings, autoMapping)
       .discriminator(discriminator).build();
     configuration.addResultMap(resultMap);

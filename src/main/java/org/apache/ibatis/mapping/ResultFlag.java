@@ -20,8 +20,14 @@ package org.apache.ibatis.mapping;
  */
 public enum ResultFlag {
 
+  /**
+   * resultMap 中 {@code <id/>} 可以定义主键
+   */
   ID,
 
+  /**
+   * 定义构造器。但开发时按照 javabean 规范要求，这一项基本没用过
+   */
   CONSTRUCTOR
 
 }

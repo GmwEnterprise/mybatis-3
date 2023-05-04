@@ -35,9 +35,9 @@ public class ResultMap {
   private String id;
   private Class<?> type;
   private List<ResultMapping> resultMappings;
-  private List<ResultMapping> idResultMappings;
-  private List<ResultMapping> constructorResultMappings;
-  private List<ResultMapping> propertyResultMappings;
+  private List<ResultMapping> idResultMappings; // 主键映射
+  private List<ResultMapping> constructorResultMappings; // 构造函数参数映射
+  private List<ResultMapping> propertyResultMappings; // 属性映射
   private Set<String> mappedColumns;
   private Set<String> mappedProperties;
   private Discriminator discriminator;
@@ -85,6 +85,7 @@ public class ResultMap {
       resultMap.constructorResultMappings = new ArrayList<>();
       resultMap.propertyResultMappings = new ArrayList<>();
       final List<String> constructorArgNames = new ArrayList<>();
+
       for (ResultMapping resultMapping : resultMap.resultMappings) {
         resultMap.hasNestedQueries = resultMap.hasNestedQueries || resultMapping.getNestedQueryId() != null;
         resultMap.hasNestedResultMaps = resultMap.hasNestedResultMaps

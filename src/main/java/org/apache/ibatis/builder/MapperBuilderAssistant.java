@@ -314,17 +314,33 @@ public class MapperBuilderAssistant extends BaseBuilder {
   }
 
   public ResultMapping buildResultMapping(
-    Class<?> resultType, String property, String column, Class<?> javaType,
-    JdbcType jdbcType, String nestedSelect, String nestedResultMap, String notNullColumn, String columnPrefix,
-    Class<? extends TypeHandler<?>> typeHandler, List<ResultFlag> flags, String resultSet, String foreignColumn,
-    boolean lazy
+    Class<?> resultType, // 最终返回的实体类型
+    String property, // 实体类成员
+    String column, // 表字段
+    Class<?> javaType, // 成员类型
+    JdbcType jdbcType, // 表字段类型
+    String nestedSelect, // 嵌套查询，one or many
+    String nestedResultMap, // 嵌套 resultMap，定义于 @One 或 @Many
+    String notNullColumn, // 是否为非空字段
+    String columnPrefix, // 列前缀，若定义了嵌套 resultMap 则会用到
+    Class<? extends TypeHandler<?>> typeHandler, // typeHandler
+    List<ResultFlag> flags, // 主键、构造器参数这两种，可能都有
+    String resultSet, // resultSet
+    String foreignColumn, // 是否外键
+    boolean lazy // 是否懒加载
   ) {
+    // 如果没有定义 Java Type，则通过返回类型以及属性名去解析
     Class<?> javaTypeClass = resolveResultJavaType(resultType, property, javaType);
+    // 从而找到对应的 typeHandler
+    // 这里可以看到，所有的类型映射都会去找对应的 typeHandler
     TypeHandler<?> typeHandlerInstance = resolveTypeHandler(javaTypeClass, typeHandler);
+
     List<ResultMapping> composites;
     if ((nestedSelect == null || nestedSelect.isEmpty()) && (foreignColumn == null || foreignColumn.isEmpty())) {
+      // 没有嵌套映射或者外键映射
       composites = Collections.emptyList();
     } else {
+      // 有嵌套映射或者外键映射
       composites = parseCompositeColumnName(column);
     }
     return new ResultMapping.Builder(configuration, property, column, javaTypeClass).jdbcType(jdbcType)
@@ -389,6 +405,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
   private List<ResultMapping> parseCompositeColumnName(String columnName) {
     List<ResultMapping> composites = new ArrayList<>();
     if (columnName != null && (columnName.indexOf('=') > -1 || columnName.indexOf(',') > -1)) {
+
       StringTokenizer parser = new StringTokenizer(columnName, "{}=, ", false);
       while (parser.hasMoreTokens()) {
         String property = parser.nextToken();

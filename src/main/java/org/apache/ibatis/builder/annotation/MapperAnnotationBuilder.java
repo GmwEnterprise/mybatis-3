@@ -461,12 +461,21 @@ public class MapperAnnotationBuilder {
       Class<? extends TypeHandler<?>> typeHandler = (Class<? extends TypeHandler<?>>) (result
         .typeHandler() == UnknownTypeHandler.class ? null : result.typeHandler());
       boolean hasNestedResultMap = hasNestedResultMap(result);
-      ResultMapping resultMapping = assistant.buildResultMapping(resultType, nullOrEmpty(result.property()),
-        nullOrEmpty(result.column()), result.javaType() == void.class ? null : result.javaType(),
+      ResultMapping resultMapping = assistant.buildResultMapping(
+        resultType,
+        nullOrEmpty(result.property()),
+        nullOrEmpty(result.column()),
+        result.javaType() == void.class ? null : result.javaType(),
         result.jdbcType() == JdbcType.UNDEFINED ? null : result.jdbcType(),
         hasNestedSelect(result) ? nestedSelectId(result) : null,
-        hasNestedResultMap ? nestedResultMapId(result) : null, null,
-        hasNestedResultMap ? findColumnPrefix(result) : null, typeHandler, flags, null, null, isLazy(result));
+        hasNestedResultMap ? nestedResultMapId(result) : null,
+        null,
+        hasNestedResultMap ? findColumnPrefix(result) : null,
+        typeHandler,
+        flags,
+        null,
+        null,
+        isLazy(result));
       resultMappings.add(resultMapping);
     }
   }

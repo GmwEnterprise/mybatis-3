@@ -72,6 +72,10 @@ public class MapperAnnotationBuilder {
     this.type = type;
   }
 
+  /**
+   * 解析基于注解的 mapper 接口<br>
+   * mapper-config 中注册指定接口若不指定 xml 映射文件，会报错，提示无法找到对应的 statement
+   */
   public void parse() {
     String resource = type.toString(); // interface cn.mragofficial.demos.mybatis.TestTableMapper
     if (!configuration.isResourceLoaded(resource)) { // 没加载过这个 mapper 资源
@@ -90,7 +94,6 @@ public class MapperAnnotationBuilder {
           && method.getAnnotation(ResultMap.class) == null) {
           // 注解标注的 select 语句，且没有标记 resultMap 注解
           // 这个 @ResultMap 注解是用来指定已定义好的 resultMap 的，不是用来生成的
-
           parseResultMap(method);
         }
         try {
@@ -200,6 +203,9 @@ public class MapperAnnotationBuilder {
     }
   }
 
+  /**
+   * 根据基于注解的 mapper 接口，为未指定 ResultMap 的查询语句生成匹配的 ResultMap
+   */
   private String parseResultMap(Method method) {
     // 返回类型；如果是集合类型，返回集合类型的元素类型
     Class<?> returnType = getReturnType(method, type);

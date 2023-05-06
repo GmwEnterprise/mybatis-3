@@ -329,7 +329,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     String foreignColumn, // 是否外键
     boolean lazy // 是否懒加载
   ) {
-    // 如果没有定义 Java Type，则通过返回类型以及属性名去解析
+    // 如果没有定义 javaType，则通过返回类型以及属性名去解析
     Class<?> javaTypeClass = resolveResultJavaType(resultType, property, javaType);
     // 从而找到对应的 typeHandler
     // 这里可以看到，所有的类型映射都会去找对应的 typeHandler
@@ -343,12 +343,20 @@ public class MapperBuilderAssistant extends BaseBuilder {
       // 有嵌套映射或者外键映射
       composites = parseCompositeColumnName(column);
     }
-    return new ResultMapping.Builder(configuration, property, column, javaTypeClass).jdbcType(jdbcType)
+    return new ResultMapping
+      .Builder(configuration, property, column, javaTypeClass)
+      .jdbcType(jdbcType)
       .nestedQueryId(applyCurrentNamespace(nestedSelect, true))
-      .nestedResultMapId(applyCurrentNamespace(nestedResultMap, true)).resultSet(resultSet)
-      .typeHandler(typeHandlerInstance).flags(flags == null ? new ArrayList<>() : flags).composites(composites)
-      .notNullColumns(parseMultipleColumnNames(notNullColumn)).columnPrefix(columnPrefix).foreignColumn(foreignColumn)
-      .lazy(lazy).build();
+      .nestedResultMapId(applyCurrentNamespace(nestedResultMap, true))
+      .resultSet(resultSet)
+      .typeHandler(typeHandlerInstance)
+      .flags(flags == null ? new ArrayList<>() : flags)
+      .composites(composites)
+      .notNullColumns(parseMultipleColumnNames(notNullColumn))
+      .columnPrefix(columnPrefix)
+      .foreignColumn(foreignColumn)
+      .lazy(lazy)
+      .build();
   }
 
   /**

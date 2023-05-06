@@ -36,8 +36,8 @@ public class ResultMapping {
   private Class<?> javaType;
   private JdbcType jdbcType;
   private TypeHandler<?> typeHandler;
-  private String nestedResultMapId;
-  private String nestedQueryId;
+  private String nestedResultMapId; // 若有嵌套 ResultMap，则为嵌套的 ResultMap ID
+  private String nestedQueryId; // 若有嵌套查询，则为嵌套的查询 ID（方法 ID）
   private Set<String> notNullColumns;
   private String columnPrefix;
   private List<ResultFlag> flags;

@@ -41,8 +41,8 @@ public class ResultMap {
   private Set<String> mappedColumns;
   private Set<String> mappedProperties;
   private Discriminator discriminator;
-  private boolean hasNestedResultMaps;
-  private boolean hasNestedQueries;
+  private boolean hasNestedResultMaps; // 是否有嵌套的 ResultMap
+  private boolean hasNestedQueries; // 是否有嵌套查询
   private Boolean autoMapping;
 
   private ResultMap() {

@@ -60,11 +60,14 @@ public class MapperRegistry {
       }
       boolean loadCompleted = false;
       try {
+        // 新建一个 MapperProxyFactory 实例，添加到 knownMappers
         knownMappers.put(type, new MapperProxyFactory<>(type));
         // It's important that the type is added before the parser is run
         // otherwise the binding may automatically be attempted by the
         // mapper parser. If the type is already known, it won't try.
         MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+        // 解析 mapper 接口上的注解
+        // 通过 <mapper class="xxx"/> 或 <mapper package="xxx"/> 指定的类，mybatis 默认为注解 mapper，而不是 xml mapper
         parser.parse();
         loadCompleted = true;
       } finally {

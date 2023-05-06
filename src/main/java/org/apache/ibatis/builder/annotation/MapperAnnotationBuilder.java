@@ -83,7 +83,7 @@ public class MapperAnnotationBuilder {
       configuration.addLoadedResource(resource); // 保存加载过的资源到配置
       assistant.setCurrentNamespace(type.getName());
       parseCache(); // 没用过 cache 相关的 mybatis 注解，也不太可能会用，暂时不管
-      parseCacheRef();
+      parseCacheRef(); // 没用过 cache 相关的 mybatis 注解，也不太可能会用，暂时不管
 
       // 遍历接口中定义的方法，以及接口的父接口定义的方法
       for (Method method : type.getMethods()) {
@@ -219,10 +219,10 @@ public class MapperAnnotationBuilder {
     // TypeDiscriminator 作用是通过 case 来确定最终生成的返回值类型，具体看注解的注释
     TypeDiscriminator typeDiscriminator = method.getAnnotation(TypeDiscriminator.class);
 
-    // 根据 method 生成一个 ResultMapId
+    // 根据 method 生成一个唯一的 ResultMapId
     String resultMapId = generateResultMapName(method);
 
-    //
+    // 生成 resultMap
     applyResultMap(resultMapId, returnType, args, results, typeDiscriminator);
     return resultMapId;
   }
@@ -250,13 +250,13 @@ public class MapperAnnotationBuilder {
                               Arg[] args,
                               Result[] results,
                               TypeDiscriminator discriminator) {
-    // 初始化 target
+    // 初始化 resultMapping 集合
     List<ResultMapping> resultMappings = new ArrayList<>();
-    // 应用 Arg 注解
+    // 应用 Arg 注解，生成 resultMapping 存储到集合
     applyConstructorArgs(args, returnType, resultMappings);
-    // 应用 Result 注解
+    // 应用 Result 注解，生成 resultMapping 存储到集合
     applyResults(results, returnType, resultMappings);
-    // 应用 TypeDiscriminator 注解
+    // 应用 TypeDiscriminator 注解，生成对应实例
     Discriminator disc = applyDiscriminator(resultMapId, returnType, discriminator);
     // TODO add AutoMappingBehaviour
     assistant.addResultMap(resultMapId, returnType, null, disc, resultMappings, null);
@@ -466,22 +466,25 @@ public class MapperAnnotationBuilder {
       @SuppressWarnings("unchecked")
       Class<? extends TypeHandler<?>> typeHandler = (Class<? extends TypeHandler<?>>) (result
         .typeHandler() == UnknownTypeHandler.class ? null : result.typeHandler());
-      boolean hasNestedResultMap = hasNestedResultMap(result);
+      boolean hasNestedResultMap = hasNestedResultMap(result); // 是否有嵌套的 resultMap
+
+      // 构建 ResultMapping
       ResultMapping resultMapping = assistant.buildResultMapping(
-        resultType,
-        nullOrEmpty(result.property()),
-        nullOrEmpty(result.column()),
-        result.javaType() == void.class ? null : result.javaType(),
-        result.jdbcType() == JdbcType.UNDEFINED ? null : result.jdbcType(),
-        hasNestedSelect(result) ? nestedSelectId(result) : null,
-        hasNestedResultMap ? nestedResultMapId(result) : null,
-        null,
-        hasNestedResultMap ? findColumnPrefix(result) : null,
-        typeHandler,
-        flags,
-        null,
-        null,
-        isLazy(result));
+        resultType, // resultMap 映射的实体类型
+        nullOrEmpty(result.property()), // property
+        nullOrEmpty(result.column()), // column
+        result.javaType() == void.class ? null : result.javaType(), // 一般不会直接指定 javaType，mybatis 会自动解析的
+        result.jdbcType() == JdbcType.UNDEFINED ? null : result.jdbcType(), // jdbcType，一般也不会直接指定
+        hasNestedSelect(result) ? nestedSelectId(result) : null, // 是否有嵌套查询，若有，则提供嵌套查询 ID
+        hasNestedResultMap ? nestedResultMapId(result) : null, // 是否有嵌套 ResultMap，若有，则提供嵌套 ResultMapId
+        null, // notNullColumn
+        hasNestedResultMap ? findColumnPrefix(result) : null, // 是否有嵌套 ResultMap，若有，贼提供嵌套 ResultMap 所需要的 column 前缀
+        typeHandler, // typeHandler，可直接指定也可注册到全局然后通过 JavaType 和 JdbcType 来查询
+        flags, // 主键、构造函数参数
+        null, // resultSet
+        null, // 外键
+        isLazy(result) // 是否为懒加载
+      );
       resultMappings.add(resultMapping);
     }
   }
@@ -524,7 +527,10 @@ public class MapperAnnotationBuilder {
   }
 
   private boolean isLazy(Result result) {
+    // 首先查询全局配置
     boolean isLazy = configuration.isLazyLoadingEnabled();
+
+    // 若有嵌套 @One 或 @Many，可覆盖全局配置
     if (result.one().select().length() > 0 && FetchType.DEFAULT != result.one().fetchType()) {
       isLazy = result.one().fetchType() == FetchType.LAZY;
     } else if (result.many().select().length() > 0 && FetchType.DEFAULT != result.many().fetchType()) {

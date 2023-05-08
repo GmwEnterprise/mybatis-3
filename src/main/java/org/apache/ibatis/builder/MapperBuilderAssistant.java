@@ -73,13 +73,13 @@ public class MapperBuilderAssistant extends BaseBuilder {
     if (isReference) {
       // is it qualified with any namespace yet?
       if (base.contains(".")) {
-        // isReference 表示引用了别的 resultMap 作为父 resultMap
+        // isReference 表示引用了别的 resultMap 或 query 作为父级
         return base;
       }
     } else {
       // is it qualified with this namespace yet?
       if (base.startsWith(currentNamespace + ".")) {
-        // 当前 resultMap 若指定了命名空间，那必须是本 mapper 的命名空间
+        // 当前 resultMap 或 query 若指定了命名空间，那必须是本 mapper 的命名空间
         // 没人会这么写的
         return base;
       }
@@ -319,8 +319,8 @@ public class MapperBuilderAssistant extends BaseBuilder {
     String column, // 表字段
     Class<?> javaType, // 成员类型
     JdbcType jdbcType, // 表字段类型
-    String nestedSelect, // 嵌套查询，one or many
-    String nestedResultMap, // 嵌套 resultMap，定义于 @One 或 @Many
+    String nestedSelect, // nestedSelectId
+    String nestedResultMap, // nestedResultMapId
     String notNullColumn, // 是否为非空字段
     String columnPrefix, // 列前缀，若定义了嵌套 resultMap 则会用到
     Class<? extends TypeHandler<?>> typeHandler, // typeHandler
@@ -337,10 +337,10 @@ public class MapperBuilderAssistant extends BaseBuilder {
 
     List<ResultMapping> composites;
     if ((nestedSelect == null || nestedSelect.isEmpty()) && (foreignColumn == null || foreignColumn.isEmpty())) {
-      // 没有嵌套映射或者外键映射
+      // 没有嵌套查询或者外键字段
       composites = Collections.emptyList();
     } else {
-      // 有嵌套映射或者外键映射
+      // 反之（fixme 没有看懂这个方法里面是在干嘛，就当不会进入这里好了，反正用得少，以后再看）
       composites = parseCompositeColumnName(column);
     }
     return new ResultMapping
@@ -413,6 +413,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
   private List<ResultMapping> parseCompositeColumnName(String columnName) {
     List<ResultMapping> composites = new ArrayList<>();
     if (columnName != null && (columnName.indexOf('=') > -1 || columnName.indexOf(',') > -1)) {
+      // column 包含等号或者逗号
 
       StringTokenizer parser = new StringTokenizer(columnName, "{}=, ", false);
       while (parser.hasMoreTokens()) {

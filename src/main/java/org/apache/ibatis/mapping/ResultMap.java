@@ -86,13 +86,14 @@ public class ResultMap {
       resultMap.propertyResultMappings = new ArrayList<>();
       final List<String> constructorArgNames = new ArrayList<>();
 
+      // 遍历 resultMapping 项
       for (ResultMapping resultMapping : resultMap.resultMappings) {
         resultMap.hasNestedQueries = resultMap.hasNestedQueries || resultMapping.getNestedQueryId() != null;
         resultMap.hasNestedResultMaps = resultMap.hasNestedResultMaps
           || resultMapping.getNestedResultMapId() != null && resultMapping.getResultSet() == null;
         final String column = resultMapping.getColumn();
         if (column != null) {
-          resultMap.mappedColumns.add(column.toUpperCase(Locale.ENGLISH));
+          resultMap.mappedColumns.add(column.toUpperCase(Locale.ENGLISH)); // 数据库字段名全部转大写存放
         } else if (resultMapping.isCompositeResult()) {
           for (ResultMapping compositeResultMapping : resultMapping.getComposites()) {
             final String compositeColumn = compositeResultMapping.getColumn();

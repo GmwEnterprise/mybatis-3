@@ -140,12 +140,13 @@ public class MapperBuilderAssistant extends BaseBuilder {
       .resultMapId(resultMap).mode(parameterMode).numericScale(numericScale).typeHandler(typeHandlerInstance).build();
   }
 
-  public ResultMap addResultMap(String id, // resultMapId
-                                Class<?> type, // return type
-                                String extend, // 父 resultMapId，resultMap 是可以继承的，提取共有属性
-                                Discriminator discriminator, // TypeDiscriminator 注解应用后的实例
-                                List<ResultMapping> resultMappings, // 整理好的 resultMapping 集合
-                                Boolean autoMapping // 自动映射 ? fixme
+  public ResultMap addResultMap(
+    String id, // resultMapId
+    Class<?> type, // return type
+    String extend, // 父 resultMapId，resultMap 是可以继承的，提取共有属性
+    Discriminator discriminator, // TypeDiscriminator 注解应用后的实例
+    List<ResultMapping> resultMappings, // 整理好的 resultMapping 集合
+    Boolean autoMapping // 自动映射 ? fixme
   ) {
     id = applyCurrentNamespace(id, false);
     extend = applyCurrentNamespace(extend, true);

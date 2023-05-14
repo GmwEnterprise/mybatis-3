@@ -55,10 +55,16 @@ import java.util.stream.Stream;
  */
 public class MapperAnnotationBuilder {
 
-  private static final Set<Class<? extends Annotation>> statementAnnotationTypes = Stream
-    .of(Select.class, Update.class, Insert.class, Delete.class, SelectProvider.class, UpdateProvider.class,
-      InsertProvider.class, DeleteProvider.class)
-    .collect(Collectors.toSet());
+  private static final Set<Class<? extends Annotation>> statementAnnotationTypes = Stream.of(
+    Select.class,
+    Update.class,
+    Insert.class,
+    Delete.class,
+    SelectProvider.class,
+    UpdateProvider.class,
+    InsertProvider.class,
+    DeleteProvider.class
+  ).collect(Collectors.toSet());
 
   private final Configuration configuration;
   private final MapperBuilderAssistant assistant;
@@ -214,6 +220,7 @@ public class MapperAnnotationBuilder {
     Arg[] args = method.getAnnotationsByType(Arg.class);
 
     // 是否标记了一个或多个 Result 注解；若有，则提取出来
+    // 直接标记在方法上的或者标记在 @Results 注解中的 @Result 都可以被找出来
     Result[] results = method.getAnnotationsByType(Result.class);
 
     // TypeDiscriminator 作用是通过 case 来确定最终生成的返回值类型，具体看注解的注释
@@ -245,11 +252,13 @@ public class MapperAnnotationBuilder {
     return type.getName() + "." + method.getName() + suffix;
   }
 
-  private void applyResultMap(String resultMapId,
-                              Class<?> returnType,
-                              Arg[] args,
-                              Result[] results,
-                              TypeDiscriminator discriminator) {
+  private void applyResultMap(
+    String resultMapId,
+    Class<?> returnType,
+    Arg[] args,
+    Result[] results,
+    TypeDiscriminator discriminator
+  ) {
     // 初始化 resultMapping 集合
     List<ResultMapping> resultMappings = new ArrayList<>();
     // 应用 Arg 注解，生成 resultMapping 存储到集合
@@ -309,14 +318,13 @@ public class MapperAnnotationBuilder {
     // sql 方言驱动
     final LanguageDriver languageDriver = getLanguageDriver(method);
 
-    // 获取目标 crud 注解
+    // 获取目标 crud 注解 (@Select 的四个注解以及 @XXXProvider 注解)
     getAnnotationWrapper(method, true, statementAnnotationTypes)
 
       // 然后处理
       .ifPresent(statementAnnotation -> {
-        // 构建 sqlSource TODO
-        final SqlSource sqlSource = buildSqlSource(
-          statementAnnotation.getAnnotation(), parameterTypeClass, languageDriver, method);
+        // 构建 sqlSource
+        final SqlSource sqlSource = buildSqlSource(statementAnnotation.getAnnotation(), parameterTypeClass, languageDriver, method);
         final SqlCommandType sqlCommandType = statementAnnotation.getSqlCommandType();
         final Options options = getAnnotationWrapper(method, false, Options.class).map(x -> (Options) x.getAnnotation())
           .orElse(null);
